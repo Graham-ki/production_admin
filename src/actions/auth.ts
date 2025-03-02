@@ -28,7 +28,7 @@ export const authenticate = async (email: string, password: string) => {
 
     // Check if user is an admin
     if (userData.type !== 'PRODUCTION_MANAGER') {
-      alert('Access denied: User is not store admin');
+      alert('Access denied: User is not production admin');
       return;
     }
 
