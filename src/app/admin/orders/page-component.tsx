@@ -15,7 +15,7 @@ const supabaseUrl = 'https://kxnrfzcurobahklqefjs.supabase.co';
 const supabaseKey = 'YOUR_SUPABASE_KEY'; // Replace with environment variable
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const statusOptions = ['Pending', 'Cancelled', 'Completed'];
+const statusOptions = ['Pending', 'Completed'];
 
 type Props = {
   ordersWithProducts: OrdersWithProducts;
