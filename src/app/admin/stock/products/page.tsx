@@ -65,10 +65,11 @@ export default function ProductsPage() {
   useEffect(() => {
     const fetchProductEntries = async () => {
       const { data, error } = await supabase
-        .from('product_entries')
-        .select('*')
-        .eq('Created_by', 'Production Manager') // Filter by 'Production Manager'
-        .order('created_at', { ascending: false });
+  .from('product_entries')
+  .select('*')
+  .eq('Created_by', 'Production Manager') // Filter by 'Production Manager'
+  .eq('status', 'Pending') // Filter by status = 'Pending'
+  .order('created_at', { ascending: false }); // Order by created_at in descending order
     
       if (error) console.error('Error fetching product entries:', error);
       else setProductEntries(data || []);
@@ -96,6 +97,7 @@ export default function ProductsPage() {
         title: productName,
         quantity: Number(quantity),
         Created_by: 'Production Manager',
+        status: 'Pending',
       },
     ]);
 
