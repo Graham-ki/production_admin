@@ -38,7 +38,7 @@ const supabaseUrl = 'https://kxnrfzcurobahklqefjs.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4bnJmemN1cm9iYWhrbHFlZmpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzc5NTk1MzUsImV4cCI6MjA1MzUzNTUzNX0.pHrrAPHV1ln1OHugnB93DTUY5TL9K8dYREhz1o0GkjE';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const statusOptions = ['Pending', 'Approved'];
+const statusOptions = ['Pending', 'Approved']; 
 
 type Props = {
   ordersWithProducts: OrdersWithProducts;
