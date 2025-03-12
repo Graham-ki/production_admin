@@ -49,6 +49,7 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(false);
   const [dateFilter, setDateFilter] = useState('All');
   const [customDate, setCustomDate] = useState('');
+  const [editEntry, setEditEntry] = useState<ProductEntry | null>(null); // For editing entries
 
   // Fetch Products List
   useEffect(() => {
@@ -65,12 +66,12 @@ export default function ProductsPage() {
   useEffect(() => {
     const fetchProductEntries = async () => {
       const { data, error } = await supabase
-  .from('product_entries')
-  .select('*')
-  .eq('Created_by', 'Production Manager') // Filter by 'Production Manager'
-  .eq('status', 'Pending') // Filter by status = 'Pending'
-  .order('created_at', { ascending: false }); // Order by created_at in descending order
-    
+        .from('product_entries')
+        .select('*')
+        .eq('Created_by', 'Production Manager') // Filter by 'Production Manager'
+        .eq('status', 'Pending') // Filter by status = 'Pending'
+        .order('created_at', { ascending: false }); // Order by created_at in descending order
+
       if (error) console.error('Error fetching product entries:', error);
       else setProductEntries(data || []);
     };
@@ -111,6 +112,67 @@ export default function ProductsPage() {
     // Refresh data
     alert('Product entry added successfully!');
     window.location.reload();
+  };
+
+  // Handle Edit Entry
+  const handleEdit = async (entry: ProductEntry) => {
+    setEditEntry(entry);
+    setSelectedProduct(entry.product_id);
+    setQuantity(entry.quantity.toString());
+  };
+
+  // Handle Update Entry
+  const handleUpdate = async () => {
+    if (!editEntry || !selectedProduct || !quantity) {
+      alert('Please select a product and enter a quantity.');
+      return;
+    }
+
+    setLoading(true);
+
+    // Find selected product name
+    const productName = products.find((p) => p.id === selectedProduct)?.title || '';
+
+    // Update product entry
+    const { error: updateError } = await supabase
+      .from('product_entries')
+      .update({
+        product_id: selectedProduct,
+        title: productName,
+        quantity: Number(quantity),
+      })
+      .eq('id', editEntry.id);
+
+    if (updateError) {
+      console.error('Error updating product entry:', updateError);
+      alert('Failed to update product entry.');
+      setLoading(false);
+      return;
+    }
+
+    // Refresh data
+    alert('Product entry updated successfully!');
+    window.location.reload();
+  };
+
+  // Handle Delete Entry
+  const handleDelete = async (id: number) => {
+    if (confirm('Are you sure you want to delete this entry?')) {
+      const { error: deleteError } = await supabase
+        .from('product_entries')
+        .delete()
+        .eq('id', id);
+
+      if (deleteError) {
+        console.error('Error deleting product entry:', deleteError);
+        alert('Failed to delete product entry.');
+        return;
+      }
+
+      // Refresh data
+      alert('Product entry deleted successfully!');
+      window.location.reload();
+    }
   };
 
   // Filtered product entries based on date
@@ -171,12 +233,14 @@ export default function ProductsPage() {
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add new items produced</DialogTitle>
-            <DialogDescription>This entry cannot be changed!</DialogDescription>
+            <DialogTitle>{editEntry ? 'Edit Entry' : 'Add new items produced'}</DialogTitle>
+            <DialogDescription>
+              {editEntry ? 'Update the product entry.' : 'This entry cannot be changed!'}
+            </DialogDescription>
           </DialogHeader>
 
           {/* Product Selection */}
-          <Select onValueChange={(value) => setSelectedProduct(Number(value))}>
+          <Select onValueChange={(value) => setSelectedProduct(Number(value))} value={selectedProduct?.toString()}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select a Product" />
             </SelectTrigger>
@@ -199,8 +263,8 @@ export default function ProductsPage() {
           />
 
           {/* Submit Button */}
-          <Button onClick={handleSubmit} disabled={loading}>
-            {loading ? 'Submitting...' : 'Submit'}
+          <Button onClick={editEntry ? handleUpdate : handleSubmit} disabled={loading}>
+            {loading ? 'Submitting...' : editEntry ? 'Update' : 'Submit'}
           </Button>
         </DialogContent>
       </Dialog>
@@ -211,14 +275,21 @@ export default function ProductsPage() {
           <TableHeader>
             <TableRow>
               <TableHead className="shadow-md">Beverage Name</TableHead>
+              <TableHead className="shadow-md">Quantity</TableHead>
               <TableHead className="shadow-md">Date Added</TableHead>
+              <TableHead className="shadow-md">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredProductEntries.map((entry) => (
               <TableRow key={entry.id} className="hover:bg-gray-100 transition-colors duration-200">
                 <TableCell>{entry.title}</TableCell>
+                <TableCell>{entry.quantity}</TableCell>
                 <TableCell>{new Date(entry.created_at).toLocaleDateString()}</TableCell>
+                <TableCell>
+                  <Button variant="ghost" onClick={() => handleEdit(entry)}>Edit</Button>
+                  <Button variant="destructive" onClick={() => handleDelete(entry.id)}>Delete</Button>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
