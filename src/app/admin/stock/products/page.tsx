@@ -287,7 +287,6 @@ export default function ProductsPage() {
                 <TableCell>{entry.quantity}</TableCell>
                 <TableCell>{new Date(entry.created_at).toLocaleDateString()}</TableCell>
                 <TableCell>
-                  <Button variant="ghost" onClick={() => handleEdit(entry)}>Edit</Button>
                   <Button variant="destructive" onClick={() => handleDelete(entry.id)}>Delete</Button>
                 </TableCell>
               </TableRow>
