@@ -88,30 +88,67 @@ export default function ProductsPage() {
 
     setLoading(true);
 
-    // Find selected product name
-    const productName = products.find((p) => p.id === selectedProduct)?.title || '';
+    try {
+      // Find selected product name
+      const productName = products.find((p) => p.id === selectedProduct)?.title || '';
 
-    // Insert into product_entries
-    const { error: entryError } = await supabase.from('product_entries').insert([
-      {
-        product_id: selectedProduct,
-        title: productName,
-        quantity: Number(quantity),
-        Created_by: 'Production Manager',
-        status: 'Pending',
-      },
-    ]);
+      // Fetch the current maxQuantity for the selected product
+      const { data: productData, error: productError } = await supabase
+        .from('product')
+        .select('maxQuantity')
+        .eq('id', selectedProduct)
+        .single();
 
-    if (entryError) {
-      console.error('Error inserting product entry:', entryError);
-      alert('Failed to add product entry.');
+      if (productError) {
+        console.error('Error fetching product data:', productError);
+        alert('Failed to fetch product details.');
+        setLoading(false);
+        return;
+      }
+
+      const currentMaxQuantity = productData?.maxQuantity || 0;
+      const newQuantity = Number(quantity);
+      const updatedMaxQuantity = currentMaxQuantity + newQuantity;
+
+      // Insert into product_entries
+      const { error: entryError } = await supabase.from('product_entries').insert([
+        {
+          product_id: selectedProduct,
+          title: productName,
+          quantity: newQuantity,
+          Created_by: 'Production Manager',
+          status: 'Pending',
+        },
+      ]);
+
+      if (entryError) {
+        console.error('Error inserting product entry:', entryError);
+        alert('Failed to add product entry.');
+        setLoading(false);
+        return;
+      }
+
+      // Update maxQuantity in the product table
+      const { error: updateError } = await supabase
+        .from('product')
+        .update({ maxQuantity: updatedMaxQuantity })
+        .eq('id', selectedProduct);
+
+      if (updateError) {
+        console.error('Error updating product maxQuantity:', updateError);
+        alert('Failed to update product maxQuantity.');
+        setLoading(false);
+        return;
+      }
+
+      // Refresh data
+      alert('Product entry added successfully!');
+      window.location.reload();
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      alert('An unexpected error occurred.');
       setLoading(false);
-      return;
     }
-
-    // Refresh data
-    alert('Product entry added successfully!');
-    window.location.reload();
   };
 
   // Handle Edit Entry
