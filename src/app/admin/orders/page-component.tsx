@@ -7,128 +7,141 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Calendar } from '@/components/ui/calendar';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 
 const statusOptions = ['Pending', 'Completed'];
 
-type Props = {
-  ordersWithProducts: OrdersWithProducts;
-};
+export default function PageComponent({ ordersWithProducts }: { ordersWithProducts: any[] }) {
+  const [selectedProducts, setSelectedProducts] = useState<
+    { order_id: number; product: any; quantity: number }[]
+  >([]);
+  const [selectedFilter, setSelectedFilter] = useState<'Daily' | 'Monthly' | 'Yearly' | 'Custom'>('Daily');
+  const [customStartDate, setCustomStartDate] = useState<Date | null>(null);
+  const [customEndDate, setCustomEndDate] = useState<Date | null>(null);
+  const [filteredOrders, setFilteredOrders] = useState<any[]>(ordersWithProducts);
 
-export default function PageComponent({ ordersWithProducts }: Props) {
-  // ... existing state and logic remains exactly the same ...
+  useEffect(() => {
+    filterOrders();
+  }, [selectedFilter, customStartDate, customEndDate]);
+
+  const filterOrders = () => {
+    const now = new Date();
+    let startDate: Date | null = null;
+    let endDate: Date | null = null;
+
+    switch (selectedFilter) {
+      case 'Daily':
+        startDate = startOfDay(now);
+        endDate = endOfDay(now);
+        break;
+      case 'Monthly':
+        startDate = startOfMonth(now);
+        endDate = endOfMonth(now);
+        break;
+      case 'Yearly':
+        startDate = startOfYear(now);
+        endDate = endOfYear(now);
+        break;
+      case 'Custom':
+        startDate = customStartDate;
+        endDate = customEndDate;
+        break;
+      default:
+        return;
+    }
+
+    if (startDate && endDate) {
+      const filtered = ordersWithProducts.filter((order) => {
+        const orderDate = new Date(order.created_at);
+        return orderDate >= startDate && orderDate <= endDate;
+      });
+      setFilteredOrders(filtered);
+    }
+  };
 
   return (
-    <div className="container mx-auto p-4 md:p-6">
-      <Card className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900">
-        <h1 className="text-2xl md:text-3xl font-bold text-center p-3 rounded-lg">
+    <div className="container mx-auto p-6">
+      <div className="mb-6 p-4 bg-blue-100 dark:bg-gray-800 rounded-lg">
+        <h1 className="text-3xl font-bold text-center dark:text-white">
           Orders Management Dashboard
         </h1>
-      </Card>
+      </div>
 
       {/* FILTER SECTION */}
-      <Card className="mb-6 p-4">
-        <div className="flex flex-wrap gap-2">
-          <Button 
-            onClick={() => setSelectedFilter('Daily')} 
-            variant={selectedFilter === 'Daily' ? 'default' : 'outline'}
-            className="min-w-[80px]"
-          >
-            Daily
-          </Button>
-          <Button 
-            onClick={() => setSelectedFilter('Monthly')} 
-            variant={selectedFilter === 'Monthly' ? 'default' : 'outline'}
-            className="min-w-[80px]"
-          >
-            Monthly
-          </Button>
-          <Button 
-            onClick={() => setSelectedFilter('Yearly')} 
-            variant={selectedFilter === 'Yearly' ? 'default' : 'outline'}
-            className="min-w-[80px]"
-          >
-            Yearly
-          </Button>
+      <div className="flex flex-wrap gap-2 mb-6">
+        <Button 
+          onClick={() => setSelectedFilter('Daily')} 
+          variant={selectedFilter === 'Daily' ? 'default' : 'outline'}
+        >
+          Daily
+        </Button>
+        <Button 
+          onClick={() => setSelectedFilter('Monthly')} 
+          variant={selectedFilter === 'Monthly' ? 'default' : 'outline'}
+        >
+          Monthly
+        </Button>
+        <Button 
+          onClick={() => setSelectedFilter('Yearly')} 
+          variant={selectedFilter === 'Yearly' ? 'default' : 'outline'}
+        >
+          Yearly
+        </Button>
 
-          {/* Custom Date Range Picker */}
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button 
-                variant={selectedFilter === 'Custom' ? 'default' : 'outline'}
-                className="min-w-[150px]"
-              >
-                {customStartDate && customEndDate 
-                  ? `${format(customStartDate, 'MMM d')} - ${format(customEndDate, 'MMM d')}`
-                  : 'Custom Date Range'}
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[625px]">
-              <DialogHeader>
-                <DialogTitle className="text-lg">Select Date Range</DialogTitle>
-              </DialogHeader>
-              <div className="flex flex-col sm:flex-row gap-4 py-4">
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">Start Date</p>
-                  <Calendar
-                    mode="single"
-                    selected={customStartDate}
-                    onSelect={setCustomStartDate}
-                    className="rounded-md border"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">End Date</p>
-                  <Calendar
-                    mode="single"
-                    selected={customEndDate}
-                    onSelect={setCustomEndDate}
-                    className="rounded-md border"
-                  />
-                </div>
-              </div>
-              <Button 
-                onClick={() => setSelectedFilter('Custom')} 
-                className="w-full"
-                disabled={!customStartDate || !customEndDate}
-              >
-                Apply Date Range
-              </Button>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </Card>
+        {/* Custom Date Range Picker */}
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant={selectedFilter === 'Custom' ? 'default' : 'outline'}>
+              Custom Date Range
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="p-4 max-w-[630px]">
+            <DialogHeader>
+              <DialogTitle>Select Date Range</DialogTitle>
+            </DialogHeader>
+            <div className="flex space-x-4">
+              <Calendar
+                mode="single"
+                selected={customStartDate}
+                onSelect={setCustomStartDate}
+                className="rounded-md border"
+              />
+              <Calendar
+                mode="single"
+                selected={customEndDate}
+                onSelect={setCustomEndDate}
+                className="rounded-md border"
+              />
+            </div>
+            <Button onClick={() => setSelectedFilter('Custom')} className="mt-4">
+              Apply Filter
+            </Button>
+          </DialogContent>
+        </Dialog>
+      </div>
 
       {/* TABLE */}
-      <Card className="overflow-hidden">
-        <Table className="min-w-full">
-          <TableHeader className="bg-gray-50 dark:bg-gray-800">
+      <div className="border rounded-lg overflow-hidden">
+        <Table>
+          <TableHeader className="bg-gray-100 dark:bg-gray-800">
             <TableRow>
-              <TableHead className="font-semibold">Order Date</TableHead>
-              <TableHead className="font-semibold">Reception</TableHead>
-              <TableHead className="font-semibold">Delivery</TableHead>
-              <TableHead className="font-semibold">Marketeer</TableHead>
-              <TableHead className="font-semibold">Order ID</TableHead>
-              <TableHead className="font-semibold">Items</TableHead>
-              <TableHead className="font-semibold text-right">Actions</TableHead>
+              <TableHead>Order Date</TableHead>
+              <TableHead>Reception Status</TableHead>
+              <TableHead>Delivery Status</TableHead>
+              <TableHead>Marketeer</TableHead>
+              <TableHead>Order ID</TableHead>
+              <TableHead>No. of Products</TableHead>
+              <TableHead>Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredOrders.map((order) => (
-              <TableRow key={order.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                <TableCell className="font-medium">
-                  {format(new Date(order.created_at), 'MMM dd, yyyy')}
-                </TableCell>
-                <TableCell>
-                  <Badge variant={order.receiption_status === 'Received' ? 'default' : 'secondary'}>
-                    {order.receiption_status}
-                  </Badge>
-                </TableCell>
+              <TableRow key={order.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                <TableCell>{format(new Date(order.created_at), 'MMM dd, yyyy')}</TableCell>
+                <TableCell>{order.receiption_status}</TableCell>
                 <TableCell>
                   <Select onValueChange={(value) => updateOrderStatus(order.id, value)} defaultValue={order.status}>
                     <SelectTrigger className="w-[120px]">
-                      <SelectValue placeholder="Status" />
+                      <SelectValue>{order.status}</SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       {statusOptions.map((status) => (
@@ -139,22 +152,15 @@ export default function PageComponent({ ordersWithProducts }: Props) {
                     </SelectContent>
                   </Select>
                 </TableCell>
-                <TableCell className="truncate max-w-[150px]">
-                  {(order.user as { email?: string })?.email || 'N/A'}
-                </TableCell>
-                <TableCell className="font-mono">{order.slug}</TableCell>
+                <TableCell>{(order.user as { email?: string })?.email || 'N/A'}</TableCell>
+                <TableCell>{order.slug}</TableCell>
+                <TableCell>{order.order_items.length} item(s)</TableCell>
                 <TableCell>
-                  <Badge variant="outline">
-                    {order.order_items.length} item(s)
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right">
                   <Dialog>
                     <DialogTrigger asChild>
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
-                        className="hover:bg-blue-50 hover:text-blue-600"
                         onClick={() =>
                           setSelectedProducts(order.order_items.map(item => ({
                             order_id: order.id,
@@ -163,28 +169,22 @@ export default function PageComponent({ ordersWithProducts }: Props) {
                           })))
                         }
                       >
-                        View
+                        View Products
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-[425px]">
+                    <DialogContent>
                       <DialogHeader>
-                        <DialogTitle>Order Details</DialogTitle>
+                        <DialogTitle>Order Products</DialogTitle>
                       </DialogHeader>
-                      <div className="grid gap-4 py-4">
-                        <div className="space-y-2">
-                          <h4 className="font-medium">Products</h4>
-                          <div className="border rounded-lg divide-y">
-                            {selectedProducts.map(({ product, quantity }, index) => (
-                              <div key={index} className="p-3 flex justify-between items-center">
-                                <div>
-                                  <p className="font-medium">{product.title}</p>
-                                  <p className="text-sm text-gray-500">EN: {product.sku || 'N/A'}</p>
-                                </div>
-                                <Badge variant="outline">{quantity} boxes</Badge>
-                              </div>
-                            ))}
+                      <div className="mt-4">
+                        {selectedProducts.map(({ product, quantity }, index) => (
+                          <div key={index} className="mr-2 mb-2 flex items-center space-x-2">
+                            <div className="flex flex-col">
+                              <span className="font-semibold">{product.title}</span>
+                              <span className="text-sm text-gray-500">Boxes ordered: {quantity}</span>
+                            </div>
                           </div>
-                        </div>
+                        ))}
                       </div>
                     </DialogContent>
                   </Dialog>
@@ -193,7 +193,7 @@ export default function PageComponent({ ordersWithProducts }: Props) {
             ))}
           </TableBody>
         </Table>
-      </Card>
+      </div>
     </div>
   );
 }
