@@ -107,7 +107,7 @@ const PageComponent = ({
                 <FiUsers className='text-pink-500 text-xl' />
               </div>
               <div>
-                <p className='text-sm text-gray-500 dark:text-gray-400'>New Users</p>
+                <p className='text-sm text-gray-500 dark:text-gray-400'>New Marketers</p>
                 <p className='text-xl font-semibold'>{latestUsers.length}</p>
               </div>
             </div>
