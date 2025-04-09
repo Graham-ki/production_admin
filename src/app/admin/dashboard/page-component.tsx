@@ -101,6 +101,19 @@ const PageComponent = ({
               </div>
             </div>
           </div>
+          <div className='bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700'>
+            <div className='flex items-center space-x-3'>
+              <div className='p-2 rounded-lg bg-pink-50 dark:bg-pink-900/30'>
+                <FiUsers className='text-pink-500 text-xl' />
+              </div>
+              <div>
+                <p className='text-sm text-gray-500 dark:text-gray-400'>New Users</p>
+                <p className='text-xl font-semibold'>{latestUsers.length}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Orders Chart */}
         <Card className='border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow duration-300'>
           <CardHeader className='pb-3'>
